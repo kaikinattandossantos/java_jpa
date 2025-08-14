@@ -1,7 +1,11 @@
 package com.example.demo.controller;
 
-import com.example.demo.models.Modelo_Produto;
+import com.example.demo.dto.ProdutoRequestDTO;
+import com.example.demo.dto.ProdutoResponseDTO;
 import com.example.demo.service.Modelo_ProdutoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/produtos") // Define o caminho base para todos os endpoints neste controller
+@RequestMapping("/produtos")
 public class ProdutoController {
 
     private final Modelo_ProdutoService produtoService;
@@ -20,58 +24,41 @@ public class ProdutoController {
         this.produtoService = produtoService;
     }
 
-    /**
-     * Endpoint para criar um novo produto.
-     * HTTP Method: POST
-     * URL: /produtos
-     */
+    @Operation(summary = "Cria um novo produto")
     @PostMapping
-    public ResponseEntity<Modelo_Produto> criarProduto(@RequestBody Modelo_Produto produto) {
-        Modelo_Produto novoProduto = produtoService.save(produto);
-        return new ResponseEntity<>(novoProduto, HttpStatus.CREATED); // Retorna 201 Created
+    public ResponseEntity<ProdutoResponseDTO> criarProduto(@Valid @RequestBody ProdutoRequestDTO produtoRequestDTO) {
+        ProdutoResponseDTO novoProduto = produtoService.save(produtoRequestDTO);
+        return new ResponseEntity<>(novoProduto, HttpStatus.CREATED);
     }
 
-    /**
-     * Endpoint para listar todos os produtos.
-     * HTTP Method: GET
-     * URL: /produtos
-     */
+    @Operation(summary = "Lista produtos com filtros e ordenação")
     @GetMapping
-    public ResponseEntity<List<Modelo_Produto>> listarTodosProdutos() {
-        List<Modelo_Produto> produtos = produtoService.findAll();
-        return ResponseEntity.ok(produtos); // Retorna 200 OK
+    public ResponseEntity<List<ProdutoResponseDTO>> listarTodosProdutos(
+            @Parameter(description = "Filtrar produtos pelo nome (parcial, case-insensitive)") @RequestParam(required = false) String name,
+            @Parameter(description = "Ordenar por preço. Use 'preco,asc' ou 'preco,desc'") @RequestParam(required = false) String sort
+    ) {
+        List<ProdutoResponseDTO> produtos = produtoService.findAll(name, sort);
+        return ResponseEntity.ok(produtos);
     }
 
-    /**
-     * Endpoint para obter os detalhes de um produto por seu ID.
-     * HTTP Method: GET
-     * URL: /produtos/{id}
-     */
+    @Operation(summary = "Busca um produto por ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Modelo_Produto> obterProdutoPorId(@PathVariable Long id) {
-        Modelo_Produto produto = produtoService.findById(id);
-        return ResponseEntity.ok(produto); // Retorna 200 OK
+    public ResponseEntity<ProdutoResponseDTO> obterProdutoPorId(@PathVariable Long id) {
+        ProdutoResponseDTO produto = produtoService.findById(id);
+        return ResponseEntity.ok(produto);
     }
 
-    /**
-     * Endpoint para atualizar um produto existente por seu ID.
-     * HTTP Method: PUT
-     * URL: /produtos/{id}
-     */
+    @Operation(summary = "Atualiza um produto existente")
     @PutMapping("/{id}")
-    public ResponseEntity<Modelo_Produto> atualizarProduto(@PathVariable Long id, @RequestBody Modelo_Produto produtoDetails) {
-        Modelo_Produto produtoAtualizado = produtoService.update(id, produtoDetails);
-        return ResponseEntity.ok(produtoAtualizado); // Retorna 200 OK
+    public ResponseEntity<ProdutoResponseDTO> atualizarProduto(@PathVariable Long id, @Valid @RequestBody ProdutoRequestDTO produtoDetailsDTO) {
+        ProdutoResponseDTO produtoAtualizado = produtoService.update(id, produtoDetailsDTO);
+        return ResponseEntity.ok(produtoAtualizado);
     }
 
-    /**
-     * Endpoint para remover um produto por seu ID.
-     * HTTP Method: DELETE
-     * URL: /produtos/{id}
-     */
+    @Operation(summary = "Remove um produto por ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> removerProduto(@PathVariable Long id) {
         produtoService.deleteById(id);
-        return ResponseEntity.noContent().build(); // Retorna 204 No Content
+        return ResponseEntity.noContent().build();
     }
 }

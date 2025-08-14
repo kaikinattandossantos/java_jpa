@@ -11,33 +11,40 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime; // Importação correta
+// Imports para as validações
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@NoArgsConstructor // Adiciona um construtor sem argumentos (bom para JPA)
-@AllArgsConstructor // Adiciona um construtor com todos os argumentos
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "products") // Define o nome da tabela no banco de dados
+@Table(name = "products")
 public class Modelo_Produto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false) // Garante que o nome não pode ser nulo
+    @NotBlank(message = "O nome do produto é obrigatório.") 
+    @Column(nullable = false)
     private String Nome;
 
-    @Column(length = 1000) // Define um tamanho máximo para a descrição
-    private String Descricao; // Padrão camelCase: descricao -> description
+    @Column(length = 1000)
+    private String Descricao;
 
+    @Positive(message = "O preço deve ser maior que zero.") 
     @Column(nullable = false)
-    private Double Preco; // Padrão camelCase: preco -> price
+    private Double Preco;
 
-    @Column(name = "stock_quantity") // Padrão snake_case no banco e camelCase no Java
-    private Integer Quantidade_estoque; // Padrão camelCase: quantidade_estoque -> stockQuantity
+    @Positive(message = "A quantidade em estoque deve ser um número positivo.")
+    @Column(name = "stock_quantity")
+    private Integer Quantidade_estoque;
 
-    @Column(name = "creation_date", updatable = false) // Não pode ser atualizado após a criação
-    private LocalDateTime Data_criacao; // Tipo correto e padrão camelCase
+    @Column(name = "creation_date", updatable = false)
+    private LocalDateTime Data_criacao;
 
 }
